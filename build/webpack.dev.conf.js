@@ -13,6 +13,7 @@ const appData = require('../data.json')
 const seller = appData.seller
 const goods = appData.goods
 const ratings = appData.ratings
+const axios = require('axios')
 
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
@@ -23,34 +24,29 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   },
   // cheap-module-eval-source-map is faster for development
   devtool: config.dev.devtool,
-
   // these devServer options should be customized in /config/index.js
   devServer: {
-    before(app) {
-      app.get('/api/seller', function(req, res) {
-        res.json({
-          errno: 0,
-          data: seller
+    before (app) {
+      app.get('/api/getDiscList', function (req, res) {
+        var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          res.json(response.data)
+        }).catch((e) => {
+          console.log(e)
         })
-      });
-      app.get('/api/goods', function(req, res) {
-        res.json({
-          errno: 0,
-          data: goods
-        })
-      });
-      app.get('/api/ratings', function(req, res) {
-        res.json({
-          errno: 0,
-          data: ratings
-        })
-      });
+      })
     },
     clientLogLevel: 'warning',
     historyApiFallback: {
       rewrites: [
-        { from: /.*/, to: path.join(config.dev.assetsPublicPath, 'index.html') },
-      ],
+        { from: /.*/, to: path.join(config.dev.assetsPublicPath, 'index.html') }
+      ]
     },
     hot: true,
     contentBase: false, // since we use CopyWebpackPlugin.
